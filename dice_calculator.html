@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>roll点成功率计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .calculator:hover {
+            transform: translateY(-5px);
+        }
+
+        .title {
+            text-align: center;
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+            transform: scale(1.02);
+        }
+
+        .difficulty-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .difficulty-option {
+            position: relative;
+        }
+
+        .difficulty-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .difficulty-label {
+            display: block;
+            padding: 15px 12px;
+            text-align: center;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .difficulty-option input[type="radio"]:checked + .difficulty-label {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .difficulty-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .difficulty-prob {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            font-size: 1.1em;
+            box-shadow: 0 10px 25px rgba(240, 147, 251, 0.3);
+            transform: scale(0);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .result.show {
+            transform: scale(1);
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-details {
+            margin-top: 15px;
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: scale(1) translateX(0); }
+            25% { transform: scale(1) translateX(-5px); }
+            75% { transform: scale(1) translateX(5px); }
+        }
+
+        .input-hint {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .calculator {
+                padding: 25px;
+                margin: 10px;
+            }
+            
+            .title {
+                font-size: 1.8em;
+            }
+            
+            .difficulty-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1 class="title">roll点成功率计算器</h1>
+        
+        <form id="diceForm">
+            <div class="form-group">
+                <label for="diceCount">骰子数量</label>
+                <input type="number" id="diceCount" min="1" max="100" value="5" required>
+                <div class="input-hint">投掷的骰子总数 (1-100)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="successCount">至少成功数量</label>
+                <input type="number" id="successCount" min="1" max="100" value="3" required>
+                <div class="input-hint">需要至少多少个骰子成功</div>
+            </div>
+
+            <div class="form-group">
+                <label for="rerollCount">重投次数</label>
+                <input type="number" id="rerollCount" min="0" max="10" value="1" required>
+                <div class="input-hint">可以进行的重新投掷次数 (0-10)</div>
+            </div>
+
+            <div class="form-group">
+                <label>游戏模式</label>
+                <div class="difficulty-group">
+                    <div class="difficulty-option">
+                        <input type="radio" id="easy" name="difficulty" value="0.6" checked>
+                        <label for="easy" class="difficulty-label">
+                            梅姬<br><span class="difficulty-prob">(60%)</span>
+                        </label>
+                    </div>
+                    <div class="difficulty-option">
+                        <input type="radio" id="medium" name="difficulty" value="0.5">
+                        <label for="medium" class="difficulty-label">
+                            哈桑<br><span class="difficulty-prob">(50%)</span>
+                        </label>
+                    </div>
+                    <div class="difficulty-option">
+                        <input type="radio" id="hard" name="difficulty" value="0.3">
+                        <label for="hard" class="difficulty-label">
+                            女术士<br><span class="difficulty-prob">(30%)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="calculate-btn">计算成功率</button>
+        </form>
+
+        <div id="result" class="result">
+            <div class="result-title">预计成功率</div>
+            <div class="result-value" id="resultValue">--%</div>
+            <div class="result-details" id="resultDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        // 二项分布累积分布函数 (CDF)
+        function binomialCDF(n, k, p) {
+            if (k < 0) return 0;
+            if (k >= n) return 1;
+            
+            let sum = 0;
+            for (let i = 0; i <= k; i++) {
+                sum += binomialPMF(n, i, p);
+            }
+            return sum;
+        }
+
+        // 二项分布概率质量函数 (PMF)
+        function binomialPMF(n, k, p) {
+            if (k > n || k < 0) return 0;
+            return binomialCoefficient(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+        }
+
+        // 组合数计算
+        function binomialCoefficient(n, k) {
+            if (k > n || k < 0) return 0;
+            if (k === 0 || k === n) return 1;
+            
+            // 使用对称性优化
+            k = Math.min(k, n - k);
+            
+            let result = 1;
+            for (let i = 0; i < k; i++) {
+                result = result * (n - i) / (i + 1);
+            }
+            return result;
+        }
+
+        // 计算有重投机会时的成功概率
+        function calculateWithRerolls(diceCount, successCount, difficulty, rerollCount) {
+            if (successCount > diceCount) return 0;
+            if (successCount <= 0) return 1;
+            
+            // 单次投掷失败的概率 (成功数 < successCount)
+            const singleFailProb = binomialCDF(diceCount, successCount - 1, difficulty);
+            
+            // 总投掷次数 = 初始投掷 + 重投次数
+            const totalAttempts = 1 + rerollCount;
+            
+            // 所有投掷都失败的概率
+            const allFailProb = Math.pow(singleFailProb, totalAttempts);
+            
+            // 至少一次成功的概率
+            return 1 - allFailProb;
+        }
+
+        // 表单提交处理
+        document.getElementById('diceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const diceCount = parseInt(document.getElementById('diceCount').value);
+            const successCount = parseInt(document.getElementById('successCount').value);
+            const rerollCount = parseInt(document.getElementById('rerollCount').value);
+            const difficulty = parseFloat(document.querySelector('input[name="difficulty"]:checked').value);
+            
+            const resultDiv = document.getElementById('result');
+            const resultValue = document.getElementById('resultValue');
+            const resultDetails = document.getElementById('resultDetails');
+            
+            // 输入验证
+            if (successCount > diceCount) {
+                resultDiv.className = 'result error show';
+                resultValue.textContent = '错误';
+                resultDetails.textContent = '至少成功数量不能大于骰子总数！';
+                return;
+            }
+            
+            if (diceCount <= 0 || successCount <= 0) {
+                resultDiv.className = 'result error show';
+                resultValue.textContent = '错误';
+                resultDetails.textContent = '骰子数量和成功数量必须大于0！';
+                return;
+            }
+            
+            // 计算概率
+            const probability = calculateWithRerolls(diceCount, successCount, difficulty, rerollCount);
+            const percentage = (probability * 100).toFixed(2);
+            
+            // 显示结果
+            resultDiv.className = 'result show';
+            resultValue.textContent = percentage + '%';
+            
+            // 获取难度名称
+            const difficultyNames = {
+                '0.6': '梅姬',
+                '0.5': '哈桑', 
+                '0.3': '女术士'
+            };
+            const difficultyName = difficultyNames[difficulty.toString()];
+            
+            // 计算无重投时的概率用于对比
+            const baseProb = calculateWithRerolls(diceCount, successCount, difficulty, 0);
+            const basePercentage = (baseProb * 100).toFixed(2);
+            const improvement = ((probability - baseProb) * 100).toFixed(2);
+            
+            resultDetails.innerHTML = `
+                <strong>投掷设置：</strong> ${diceCount}个骰子，至少${successCount}个成功<br>
+                <strong>难度等级：</strong> ${difficultyName} (单个成功率${(difficulty*100).toFixed(0)}%)<br>
+                <strong>重投次数：</strong> ${rerollCount}次<br>
+                ${rerollCount > 0 ? `<strong>无重投概率：</strong> ${basePercentage}% | <strong>提升：</strong> +${improvement}%` : ''}
+            `;
+        });
+
+        // 自动验证输入
+        document.getElementById('successCount').addEventListener('input', function() {
+            const diceCount = parseInt(document.getElementById('diceCount').value) || 0;
+            const successCount = parseInt(this.value) || 0;
+            
+            if (successCount > diceCount && diceCount > 0) {
+                this.style.borderColor = '#ff6b6b';
+                this.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.3)';
+            } else {
+                this.style.borderColor = '#e1e5e9';
+                this.style.boxShadow = 'none';
+            }
+        });
+
+        document.getElementById('diceCount').addEventListener('input', function() {
+            const diceCount = parseInt(this.value) || 0;
+            const successInput = document.getElementById('successCount');
+            const successCount = parseInt(successInput.value) || 0;
+            
+            if (successCount > diceCount && diceCount > 0) {
+                successInput.style.borderColor = '#ff6b6b';
+                successInput.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.3)';
+            } else {
+                successInput.style.borderColor = '#e1e5e9';
+                successInput.style.boxShadow = 'none';
+            }
+        });
+
+        // 页面加载时自动计算一次
+        window.addEventListener('load', function() {
+            document.getElementById('diceForm').dispatchEvent(new Event('submit'));
+        });
+    </script>
+</body>
+</html>
